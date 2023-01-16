@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+    <head>
+        <meta viewport content="width=device-width, initial-scale=1" />
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+
+            #viewport {
+                height: 100vh;
+                width: 100vw;
+            }
+        </style>
+        <script>
+            let viewport
+            let ctx
+            let shapes = []
+            let gradients = []
+            function init() {
+                viewport = document.querySelector("#viewport")
+                viewport.height = window.innerHeight
+                viewport.width = window.innerWidth
+                ctx = viewport.getContext("2d")
+                createGradients(5)
+                addShapes(5)
+                window.requestAnimationFrame(draw)
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, viewport.width, viewport.height)
+                changeGradients(gradients)
+                drawGradients(gradients)
+                changeShapes(shapes)
+                drawShapes(shapes)
+                window.requestAnimationFrame(draw)
+            }
+            
+            function createGradients(num) {
+                for (let i = 0; i < num; i++) {
+                    gradients.push(getRGBA())                
+                }
+            }
+
+            function changeGradients(gradients) {
+                gradients.forEach(function(gradient) {
+                    let newGradient = gradient
+
+                    newGradient.r = newGradient.r + newGradient.polarityR
+                    newGradient.g = newGradient.g + newGradient.polarityG
+                    newGradient.b = newGradient.b + newGradient.polarityB
+                    newGradient.a = newGradient.a + (newGradient.polarityA * 0.001)
+                    
+                    if (newGradient.r < 0 || newGradient.r > 255) {
+                        newGradient.polarityR = newGradient.polarityR * -1
+                    }
+                    if (newGradient.g < 0 || newGradient.g > 255) {
+                        newGradient.polarityG = newGradient.polarityG * -1
+                    }
+                    if (newGradient.b < 0 || newGradient.b > 255) {
+                        newGradient.polarityB = newGradient.polarityB * -1
+                    }
+                    if (newGradient.a < 0 || newGradient.a > 1) {
+                        newGradient.polarityA = newGradient.polarityA * -1
+                    }
+
+                    gradient = newGradient
+                })             
+            }
+
+            function drawGradients(gradients) {
+                // Create gradient
+                const gradientStyle = ctx.createLinearGradient(
+                    0, 0, viewport.width, viewport.height
+                );
+
+                const gradientInterval = ((100 / gradients.length) / 100).toFixed(2) * 1
+
+                for (let i = 0; i < gradients.length; i++) {
+                    gradientStyle.addColorStop(i * gradientInterval, "rgba(" + gradients[i].r + ", " + gradients[i].g + ", " + gradients[i].b + ", " + gradients[i].a + ")")
+                }
+
+                // Set the fill style and draw a rectangle
+                ctx.fillStyle = gradientStyle;
+                ctx.fillRect(
+                    0,
+                    0,
+                    viewport.width,
+                    viewport.height
+                );
+            }
+
+            function addShapes(num) {
+                for (let i = 0; i < num; i++) {
+                    shapes.push(createShape())
+                }
+            }
+
+            function createShape() {
+                const fill = getRGBA();
+                
+                const paths = []
+                const corners = Math.ceil(Math.random() * 10)
+                for (let i = 0; i < corners; i++) {
+                    const x = Math.round(Math.random() * viewport.width)
+                    const y = Math.round(Math.random() * viewport.height)
+                    const polarityX = Math.random() < 0.5 ? -1 : 1
+                    const polarityY = Math.random() < 0.5 ? -1 : 1
+                    paths.push({
+                        x: x,
+                        y: y,
+                        polarityX: polarityX,
+                        polarityY: polarityY
+                    })
+                }
+
+                return {
+                    fill: fill,
+                    paths: paths
+                }
+            }
+
+            function changeShapes(shapes) {
+                shapes.forEach(function(shape) {
+                    changeShape(shape)
+                })
+            }
+
+            function getRGBA() {
+                const r = Math.ceil(Math.random() * 255)
+                const polarityR = Math.random() < 0.5 ? -1 : 1
+                const g = Math.ceil(Math.random() * 255)
+                const polarityG = Math.random() < 0.5 ? -1 : 1
+                const b = Math.ceil(Math.random() * 255)
+                const polarityB = Math.random() < 0.5 ? -1 : 1
+                let a = Math.random().toFixed(2)
+                a = 1 * a
+                const polarityA = Math.random() < 0.5 ? -1 : 1
+                return {
+                    r: r,
+                    g: g,
+                    b: b,
+                    a: a,
+                    polarityR: polarityR,
+                    polarityG: polarityG,
+                    polarityB: polarityB,
+                    polarityA: polarityA
+                }
+            }
+
+            function changeShape(shape) {
+                if (shape.paths.length > 4 && shape.paths.length < 12) {
+                    const rand = Math.random()
+                    if (rand > 0.8) {
+                        const x = Math.round(Math.random() * viewport.width)
+                        const y = Math.round(Math.random() * viewport.height)
+                        const polarityX = Math.random() < 0.5 ? -1 : 1
+                        const polarityY = Math.random() < 0.5 ? -1 : 1
+                        shape.paths.push({
+                            x: x,
+                            y: y,
+                            polarityX: polarityX,
+                            polarityY: polarityY
+                        })
+                    } else if (rand < 0.2) {
+                        shape.paths.pop();
+                    }
+                } 
+
+                shape.paths.forEach(function (path) {
+                    let newX = path.x + path.polarityX
+                    let newY = path.y + path.polarityY
+
+                    if (newX < -200 || newX > viewport.width + 200) {
+                        path.polarityX = -1 * path.polarityX
+                    }
+                    if (newY < -200 || newY > viewport.height+ 200) {
+                        path.polarityY = -1 * path.polarityY
+                    }
+
+                    path.x = newX
+                    path.y = newY
+                })
+                const newFill = shape.fill
+                newFill.r = newFill.r + newFill.polarityR
+                newFill.g = newFill.g + newFill.polarityG
+                newFill.b = newFill.b + newFill.polarityB
+                newFill.a = newFill.a + (newFill.polarityA * 0.001)
+                
+                if (newFill.r < 0 || newFill.r > 255) {
+                    newFill.polarityR = newFill.polarityR * -1
+                }
+                if (newFill.g < 0 || newFill.g > 255) {
+                    newFill.polarityG = newFill.polarityG * -1
+                }
+                if (newFill.b < 0 || newFill.b > 255) {
+                    newFill.polarityB = newFill.polarityB * -1
+                }
+                if (newFill.a < 0 || newFill.a > 1) {
+                    newFill.polarityA = newFill.polarityA * -1
+                }
+
+                shape.fill = newFill
+            }
+
+            function drawShapes(shapes) {
+                shapes.forEach(function (shape) {
+                    drawShape(shape)
+                })
+            }
+
+            function drawShape(shape) {
+                ctx.fillStyle = "rgba(" + shape.fill.r + ", " + shape.fill.g + ", " + shape.fill.b + ", " + shape.fill.a + ")"
+                ctx.beginPath()
+                shape.paths.forEach(function (path) {
+                    ctx.lineTo(path.x, path.y)
+                })
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            window.onload = init;
+        </script>
+    </head>
+    <body>
+        <canvas id="viewport">
+        </canvas>
+    </body>
+</html>

@@ -169,8 +169,8 @@
                 } 
 
                 shape.paths.forEach(function (path) {
-                    let newX = path.x + path.polarityX
-                    let newY = path.y + path.polarityY
+                    let newX = path.x + path.polarityX * 0.1
+                    let newY = path.y + path.polarityY * 0.1
 
                     if (newX < -200 || newX > viewport.width + 200) {
                         path.polarityX = -1 * path.polarityX
@@ -186,7 +186,7 @@
                 newFill.r = newFill.r + newFill.polarityR
                 newFill.g = newFill.g + newFill.polarityG
                 newFill.b = newFill.b + newFill.polarityB
-                newFill.a = newFill.a + (newFill.polarityA * 0.001)
+                newFill.a = newFill.a + (newFill.polarityA * 0.0001)
                 
                 if (newFill.r < 0 || newFill.r > 255) {
                     newFill.polarityR = newFill.polarityR * -1
